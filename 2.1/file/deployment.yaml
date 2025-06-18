@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox-multitool
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busybox-multitool
+  template:
+    metadata:
+      labels:
+        app: busybox-multitool
+    spec:
+      volumes:
+      - name: shared-data
+        emptyDir: {}
+      containers:
+      - name: busybox
+        image: busybox
+        command: ["/bin/sh", "-c"]
+        args:
+          - while true; do
+              date > /shared-data/hello.txt;
+              sleep 5;
+            done
+        volumeMounts:
+        - name: shared-data
+          mountPath: /shared-data
+      - name: multitool
+        image: praqma/network-multitool
+        command: ["/bin/sh", "-c"]
+        args:
+          - while true; do
+              echo "=== multitool reading ===";
+              cat /shared-data/hello.txt;
+              sleep 5;
+            done
+        volumeMounts:
+        - name: shared-data
+          mountPath: /shared-data
