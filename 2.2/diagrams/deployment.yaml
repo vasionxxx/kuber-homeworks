@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox-multitool-localpv
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busybox-multitool-localpv
+  template:
+    metadata:
+      labels:
+        app: busybox-multitool-localpv
+    spec:
+      containers:
+      - name: busybox
+        image: busybox
+        command: ["/bin/sh", "-c"]
+        args:
+          - while true; do
+              date >> /data/hello.txt;
+              sleep 5;
+            done
+        volumeMounts:
+        - name: local-storage
+          mountPath: /data
+      - name: multitool
+        image: praqma/network-multitool
+        command: ["/bin/sh", "-c"]
+        args:
+          - while true; do
+              echo "=== multitool reading ===";
+              cat /data/hello.txt;
+              sleep 5;
+            done
+        volumeMounts:
+        - name: local-storage
+          mountPath: /data
+      volumes:
+      - name: local-storage
+        persistentVolumeClaim:
+          claimName: local-pvc
